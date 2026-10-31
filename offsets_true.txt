@@ -1,0 +1,95 @@
+H1Z1 offset dump
+29.10.2026 02:10:16
+H1Z1.exe   base 0x140000000
+rotkc.dll  base 0x7FFB99C40000
+
+name                   module       value
+cgame                  H1Z1.exe     missing
+game_manager           H1Z1.exe     0x382A0
+player_head            H1Z1.exe     0xD8
+local_player           H1Z1.exe     0x780
+entity_list            H1Z1.exe     0x58
+unlock_all             H1Z1.exe     0x1129D80
+cgraphics              H1Z1.exe     missing
+graphics_camera        H1Z1.exe     0x48
+camera_matrix          H1Z1.exe     0x30
+matrix_viewproj        H1Z1.exe     0x1B0
+player_base            H1Z1.exe     0x300
+ent_entry              H1Z1.exe     0x748
+actor_type             H1Z1.exe     0x3F8
+health_base            H1Z1.exe     0x3DC8
+skel_actors            H1Z1.exe     0x5C0
+mount                  H1Z1.exe     0x3A08
+name                   H1Z1.exe     0x7C0
+equipment              H1Z1.exe     0xCE8
+projectile_manager     H1Z1.exe     0x476E1C8
+px_cphysics            H1Z1.exe     0x5FF3D38
+px_scene               H1Z1.exe     0xA8
+px_actors              H1Z1.exe     0x1AC8
+px_actor_count         H1Z1.exe     0x1AD0
+px_concrete            H1Z1.exe     0x8
+px_static_pose         H1Z1.exe     0x48
+px_dynamic_pose        H1Z1.exe     0xC0
+px_shape_ptr           H1Z1.exe     0x38
+px_shape_count         H1Z1.exe     0x40
+px_shape_pose          H1Z1.exe     0x60
+px_geom_type           H1Z1.exe     0x7C
+px_triangle_mesh       H1Z1.exe     0x5
+px_type_static         H1Z1.exe     0x6
+px_type_dynamic        H1Z1.exe     0x5
+px_mesh_verts_n        H1Z1.exe     0x20
+px_mesh_tris_n         H1Z1.exe     0x24
+px_mesh_verts          H1Z1.exe     0x28
+px_mesh_indices        H1Z1.exe     0x30
+OFFSET_HEALTH          H1Z1.exe     0xB0
+OFFSET_VBASEPOS        H1Z1.exe     0x3A8
+OFFSET_YAW             H1Z1.exe     0x530
+OFFSET_VELOCITY        H1Z1.exe     0x430
+OFFSET_SkeletonStarts  H1Z1.exe     0x250
+TYPE_Player            H1Z1.exe     0x10E
+bullet_buckets         H1Z1.exe     0x90
+bullet_id              H1Z1.exe     0x10
+bullet_next            H1Z1.exe     0x28
+bullet_pos             H1Z1.exe     0x630
+
+chain
+parent = *(base + cgame)
+gameManager = *(parent + 0x382A0)
+localPlayer = *(gameManager + 0x780)
+entityList = *(gameManager + 0xD8)
+entityList_alt = *(gameManager + 0x58)
+do not read a count at parent + 0x50. Walk the game manager.
+graphics = *(base + cgraphics)
+camera = *(graphics + 0x48)
+matrix = *(camera + 0x30)
+viewproj = matrix + 0x1B0
+
+1. camera_matrix H1Z1.exe 0x5FF3F20
+2. cgame_slot H1Z1.exe 0x476DA00
+3. local_player H1Z1.exe 0x780
+4. ent_position H1Z1.exe 0x3A8
+5. ent_type H1Z1.exe 0x3F8
+6. ent_velocity H1Z1.exe 0x430
+7. ent_stance H1Z1.exe 0x954
+8. ent_name H1Z1.exe 0x7C0
+9. player_container_1 H1Z1.exe 0x476E6B8
+10. player_container_2 H1Z1.exe 0x476E448
+11. player_container_3 H1Z1.exe 0x476E518
+12. player_container_4 H1Z1.exe 0x46EC858
+13. player_container_5 H1Z1.exe 0x46EFA08
+14. player_container_6 H1Z1.exe 0x46FD158
+
+[Player Detection Notes]
+- ent_type (+0x3F8): positive large int = player; negative large int = world object
+- ent_position y (+0x3A8): real player y ≈ 1.0 (range 0.5~3)
+- lobby dummy entity: pos (1.0, 1.0, -2218.0) -> exclude
+- garbage pointer: 0xFEFEFEFEFEFEFEFE (uninitialized heap fill) -> exclude
+- player containers change after restart/re-enter -> poll multiple slots, don't lock one slot
+
+[Camera Matrix Notes]
+- camera_matrix (+0x5FF3F20) is camera basis, row-major:
+row0 = right, row1 = up, row2 = forward, row3 = camera position
+- lobby verified: pos = (-28.4, 506.5, 273.1)
+- waiting room verified: pos = (-419, 504.7, -4878)
+- cgame_slot (+0x476DA00) -> object ptr -> +0x780 = local_player
+(confirmed by signature mov [rax+0x780])

@@ -1,0 +1,8 @@
+*.ct
+*.cea
+resultptr
+imgui.ini
+release.rar
+.\H1Z1_dump*
+H1Z1/bin
+H1Z1/obj
